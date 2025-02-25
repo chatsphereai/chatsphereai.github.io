@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatSphereAI</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            background: #202123;
+        }
+        .login-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        .chat-container {
+            display: flex;
+            height: 100%;
+        }
+        .sidebar {
+            width: 260px;
+            background: #202123;
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .sidebar h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #ffffff;
+        }
+        .chat-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f0f0f0;
+        }
+        .chat-body {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 5px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .bot-message {
+            background: #ffffff;
+            color: #333;
+            margin-right: auto;
+            text-align: left;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .chat-footer {
+            padding: 20px;
+            background: #f0f0f0;
+            border-top: 1px solid #ddd;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        select, input, button {
+            padding: 8px;
+            font-size: 14px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        input {
+            flex-grow: 1;
+            background: white;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .thinking {
+            font-style: italic;
+            color: #666;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="login-container">
+        <div class="login-box">
+            <h2>ChatSphereAI</h2>
+            <div id="g_id_onload"
+                 data-client_id="YOUR_GOOGLE_CLIENT_ID"
+                 data-callback="handleCredentialResponse">
+            </div>
+            <div class="g_id_signin" data-type="standard"></div>
+        </div>
+    </div>
+    <div class="chat-container hidden" id="chat-container">
+        <div class="sidebar">
+            <div>
+                <h1>ChatSphereAI</h1>
+            </div>
+            <button onclick="viewHistory()" style="background: #343541; border: 1px solid #fff;">View History</button>
+        </div>
+        <div class="chat-area">
+            <div class="chat-body" id="chat-body"></div>
+            <div class="chat-footer">
+                <select id="model-select" title="Choose an AI model">
+                    <option value="deepseek-v3" title="General-purpose model for everyday tasks">deepseek-v3</option>
+                    <option value="deepseek-r1" title="Optimized for reasoning and problem-solving">deepseek-r1</option>
+                </select>
+                <input type="text" id="message-input" placeholder="Type a message...">
+                <button onclick="sendMessage('chat')">Send</button>
+                <button onclick="sendMessage('search')">Search</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const loginContainer = document.getElementById('login-container');
+        const chatContainer = document.getElementById('chat-container');
+        const chatBody = document.getElementById('chat-body');
+        const modelSelect = document.getElementById('model-select');
+        const messageInput = document.getElementById('message-input');
+
+        // Replace with your DeepSeek API keys
+        const apiKeys = [
+            "YOUR_API_KEY_1",
+            "YOUR_API_KEY_2",
+            "YOUR_API_KEY_3"
+        ];
+        const endpoint = "https://api.deepseek.com/v1/chat/completions";
+
+        let userId = null;
+        let history = JSON.parse(localStorage.getItem('chatHistory')) || {};
+
+        // Google Login Callback
+        function handleCredentialResponse(response) {
+            const profile = jwt_decode(response.credential);
+            userId = profile.sub;
+            loginContainer.classList.add('hidden');
+            chatContainer.classList.remove('hidden');
+            loadHistory();
+        }
+
+        // Simple JWT decode (use a library like jwt-decode in production)
+        function jwt_decode(token) {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
+        // Send message or search
+        async function sendMessage(type) {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message user-message';
+            userMsg.textContent = message;
+            chatBody.appendChild(userMsg);
+
+            const thinkingMsg = document.createElement('div');
+            thinkingMsg.className = 'message bot-message thinking';
+            thinkingMsg.textContent = type === 'search' ? 'Searching...' : 'Thinking...';
+            chatBody.appendChild(thinkingMsg);
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            const model = modelSelect.value;
+            const payload = {
+                model: model,
+                messages: [{ role: "user", content: type === 'search' ? `Search: ${message}` : message }]
+            };
+
+            let responseText = null;
+            for (const apiKey of apiKeys) {
+                try {
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${apiKey}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        responseText = data.choices[0].message.content;
+                        break;
+                    }
+                } catch (e) {
+                    console.log(`Key ${apiKey} failed: ${e}`);
+                }
+            }
+
+            chatBody.removeChild(thinkingMsg);
+            const botMsg = document.createElement('div');
+            botMsg.className = 'message bot-message';
+            botMsg.textContent = responseText || 'Error: No response from AI';
+            chatBody.appendChild(botMsg);
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            if (!history[userId]) history[userId] = [];
+            history[userId].push({ time: new Date().toISOString(), message, response: responseText, model });
+            localStorage.setItem('chatHistory', JSON.stringify(history));
+
+            messageInput.value = '';
+        }
+
+        // Load history
+        function loadHistory() {
+            if (history[userId]) {
+                chatBody.innerHTML = '';
+                history[userId].forEach(item => {
+                    const userMsg = document.createElement('div');
+                    userMsg.className = 'message user-message';
+                    userMsg.textContent = item.message;
+                    chatBody.appendChild(userMsg);
+
+                    const botMsg = document.createElement('div');
+                    botMsg.className = 'message bot-message';
+                    botMsg.textContent = item.response || 'No response';
+                    chatBody.appendChild(botMsg);
+                });
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+        }
+
+        // View history (instructions for you)
+        function viewHistory() {
+            alert('Your history is shown here. To export for admin review, open Dev Tools (F12) > Application > Local Storage > chatHistory, and share the JSON.');
+        }
+
+        // Send on Enter
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage('chat');
+        });
+    </script>
+</body>
+</html>
