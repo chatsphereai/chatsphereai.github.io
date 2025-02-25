@@ -1,120 +1,102 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ChatSphereAI</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f9;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .chat-container {
-      width: 600px;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-    .chat-header {
-      background: #6200ea;
-      color: #fff;
-      padding: 15px;
-      text-align: center;
-      font-size: 1.5rem;
-    }
-    .chat-messages {
-      flex: 1;
-      padding: 15px;
-      overflow-y: auto;
-      border-bottom: 1px solid #ddd;
-    }
-    .message {
-      margin-bottom: 10px;
-      padding: 10px;
-      border-radius: 5px;
-      max-width: 80%;
-    }
-    .user-message {
-      background: #6200ea;
-      color: #fff;
-      align-self: flex-end;
-    }
-    .bot-message {
-      background: #f1f1f1;
-      color: #333;
-      align-self: flex-start;
-    }
-    .chat-input {
-      display: flex;
-      padding: 10px;
-      background: #f9f9f9;
-    }
-    .chat-input input {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      outline: none;
-    }
-    .chat-input button {
-      background: #6200ea;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      margin-left: 10px;
-      cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatSphereAI - Login</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        :root {
+            --cosmic-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            --primary-accent: #6366f1;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background: var(--cosmic-gradient);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .stellar-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, 
+                rgba(255,255,255,0.1) 0%, 
+                rgba(0,0,0,0.8) 70%);
+            animation: pulse 8s infinite;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3rem 4rem;
+            border-radius: 1.5rem;
+            backdrop-filter: blur(12px);
+            text-align: center;
+            z-index: 1;
+            box-shadow: 0 0 40px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .login-container:hover {
+            transform: translateY(-5px);
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.8rem;
+            margin: 0 0 1rem 0;
+            background: linear-gradient(45deg, #fff 30%, var(--primary-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.05em;
+        }
+
+        .g_id_signin {
+            margin-top: 2rem;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .g_id_signin:hover {
+            transform: scale(1.03);
+            opacity: 0.9;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+    </style>
 </head>
 <body>
-  <div class="chat-container">
-    <div class="chat-header">ChatSphereAI</div>
-    <div class="chat-messages" id="chat-messages"></div>
-    <div class="chat-input">
-      <input type="text" id="user-input" placeholder="Type your message...">
-      <button onclick="sendMessage()">Send</button>
+    <div class="stellar-bg"></div>
+    <div class="login-container">
+        <h1>ChatSphereAI</h1>
+        <p style="color: rgba(255,255,255,0.8); margin-bottom: 2rem; font-size: 1.1rem;">
+            Next-Gen AI Conversation Platform
+        </p>
+        
+        <div id="g_id_onload"
+            data-client_id="195134335941-h7p6ntcfbobtrria05paabn2d4rmp228.apps.googleusercontent.com"
+            data-ux_mode="redirect"
+            data-login_uri="https://yourdomain.github.io/chat.html"
+            data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin"
+            data-type="standard"
+            data-size="large"
+            data-theme="filled_blue"
+            data-text="sign_in_with"
+            data-shape="pill">
+        </div>
     </div>
-  </div>
-
-  <script>
-    async function sendMessage() {
-      const userInput = document.getElementById("user-input").value;
-      if (!userInput) return;
-
-      // Add user message to chat
-      const chatMessages = document.getElementById("chat-messages");
-      chatMessages.innerHTML += `<div class="message user-message">${userInput}</div>`;
-
-      // Clear input
-      document.getElementById("user-input").value = "";
-
-      // Send message to backend
-      const response = await fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userInput }),
-      });
-
-      const data = await response.json();
-      if (data.error) {
-        chatMessages.innerHTML += `<div class="message bot-message">Error: ${data.error}</div>`;
-      } else {
-        chatMessages.innerHTML += `<div class="message bot-message">${data.choices[0].text}</div>`;
-      }
-
-      // Scroll to bottom
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-  </script>
 </body>
 </html>
