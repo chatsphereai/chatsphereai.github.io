@@ -10,7 +10,7 @@
             margin: 0;
             padding: 0;
             height: 100%;
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: #f0f0f0;
             overflow: hidden;
         }
@@ -40,6 +40,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            box-sizing: border-box;
         }
         .sidebar h1 {
             margin: 0;
@@ -56,6 +57,7 @@
             flex-grow: 1;
             padding: 20px;
             overflow-y: auto;
+            background: #fafafa;
         }
         .message {
             margin: 10px 0;
@@ -84,16 +86,18 @@
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
+            align-items: center;
         }
         select, input, button {
             padding: 8px;
             font-size: 14px;
             border-radius: 5px;
             border: 1px solid #ccc;
+            background: white;
         }
         input {
             flex-grow: 1;
-            background: white;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
         }
         button {
             background: #007bff;
@@ -119,9 +123,11 @@
             <h2>ChatSphereAI</h2>
             <div id="g_id_onload"
                  data-client_id="YOUR_GOOGLE_CLIENT_ID"
-                 data-callback="handleCredentialResponse">
+                 data-ux_mode="popup"
+                 data-callback="handleCredentialResponse"
+                 data-auto_prompt="true">
             </div>
-            <div class="g_id_signin" data-type="standard"></div>
+            <div class="g_id_signin" data-type="standard" data-size="large"></div>
         </div>
     </div>
     <div class="chat-container hidden" id="chat-container">
@@ -129,7 +135,7 @@
             <div>
                 <h1>ChatSphereAI</h1>
             </div>
-            <button onclick="viewHistory()" style="background: #343541; border: 1px solid #fff;">View History</button>
+            <button onclick="viewHistory()" style="background: #343541; border: 1px solid #fff; padding: 10px;">View History</button>
         </div>
         <div class="chat-area">
             <div class="chat-body" id="chat-body"></div>
@@ -165,15 +171,15 @@
 
         // Google Login Callback
         function handleCredentialResponse(response) {
-            const profile = jwt_decode(response.credential);
+            const profile = decodeJWT(response.credential);
             userId = profile.sub;
             loginContainer.classList.add('hidden');
             chatContainer.classList.remove('hidden');
             loadHistory();
         }
 
-        // Simple JWT decode (use a library like jwt-decode in production)
-        function jwt_decode(token) {
+        // Decode JWT (minimal implementation)
+        function decodeJWT(token) {
             const base64Url = token.split('.')[1];
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
             const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
@@ -219,6 +225,8 @@
                         const data = await response.json();
                         responseText = data.choices[0].message.content;
                         break;
+                    } else {
+                        console.log(`Key ${apiKey} failed with status: ${response.status}`);
                     }
                 } catch (e) {
                     console.log(`Key ${apiKey} failed: ${e}`);
@@ -258,9 +266,9 @@
             }
         }
 
-        // View history (instructions for you)
+        // View history (instructions for admin)
         function viewHistory() {
-            alert('Your history is shown here. To export for admin review, open Dev Tools (F12) > Application > Local Storage > chatHistory, and share the JSON.');
+            alert('Your history is shown. To export for admin (me), open Dev Tools (F12) > Application > Local Storage > chatHistory, copy the JSON, and share it.');
         }
 
         // Send on Enter
