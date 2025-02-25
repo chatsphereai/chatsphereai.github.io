@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatSphereAI</title>
+    <title>ChatSphereAI - Login</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         body, html {
@@ -11,332 +11,84 @@
             padding: 0;
             height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f0f0f0;
             overflow: hidden;
+            background: linear-gradient(135deg, #1a1b26 0%, #2a2b3f 100%);
         }
         .login-container {
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100%;
-            background: linear-gradient(135deg, #202123, #343541);
+            position: relative;
+            overflow: hidden;
+        }
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="1" fill="white" opacity="0.3"/></svg>') repeat;
+            animation: twinkle 10s infinite;
+            z-index: 1;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
         }
         .login-box {
-            background: #ffffff;
+            background: rgba(255, 255, 255, 0.95);
             padding: 40px;
-            border-radius: 10px;
+            border-radius: 15px;
             text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            z-index: 2;
+            animation: fadeIn 1s ease-in;
             width: 100%;
             max-width: 400px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .login-box h1 {
             color: #007bff;
-            font-size: 32px;
-            margin: 0 0 20px;
+            font-size: 36px;
+            margin: 0 0 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
         .login-box p {
-            color: #666;
-            margin: 0 0 20px;
+            color: #555;
+            font-size: 16px;
+            margin: 0 0 30px;
         }
-        .chat-container {
-            display: flex;
-            height: 100%;
+        .login-box .google-btn {
+            transition: transform 0.2s;
         }
-        .sidebar {
-            width: 260px;
-            background: #202123;
-            color: white;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-sizing: border-box;
-        }
-        .sidebar h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-        .chat-area {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            background: #f0f0f0;
-        }
-        .chat-body {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: #fafafa;
-        }
-        .message {
-            margin: 10px 0;
-            padding: 10px 15px;
-            border-radius: 5px;
-            max-width: 70%;
-            word-wrap: break-word;
-        }
-        .user-message {
-            background: #007bff;
-            color: white;
-            margin-left: auto;
-            text-align: right;
-        }
-        .bot-message {
-            background: #ffffff;
-            color: #333;
-            margin-right: auto;
-            text-align: left;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-        .chat-footer {
-            padding: 20px;
-            background: #f0f0f0;
-            border-top: 1px solid #ddd;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        select, input, button {
-            padding: 8px;
-            font-size: 14px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            background: white;
-        }
-        input {
-            flex-grow: 1;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
-        }
-        button {
-            background: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #0056b3;
-        }
-        .thinking {
-            font-style: italic;
-            color: #666;
-        }
-        .hidden {
-            display: none;
-        }
-        .popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            z-index: 1000;
-            width: 90%;
-            max-width: 400px;
-        }
-        .popup input {
-            width: 100%;
-            margin: 10px 0;
+        .login-box .google-btn:hover {
+            transform: scale(1.05);
         }
     </style>
 </head>
 <body>
-    <div class="login-container" id="login-container">
+    <div class="login-container">
+        <div class="stars"></div>
         <div class="login-box">
             <h1>ChatSphereAI</h1>
-            <p>Sign in to explore the universe of AI conversation</p>
+            <p>Unlock the cosmos of conversation with AI</p>
             <div id="g_id_onload"
                  data-client_id="YOUR_GOOGLE_CLIENT_ID"
-                 data-ux_mode="popup"
-                 data-callback="handleCredentialResponse"
+                 data-ux_mode="redirect"
+                 data-login_uri="https://chatsphereai.github.io/chat.html"
                  data-auto_prompt="true">
             </div>
-            <div class="g_id_signin" data-type="standard" data-size="large"></div>
+            <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular"></div>
         </div>
-    </div>
-    <div class="chat-container hidden" id="chat-container">
-        <div class="sidebar">
-            <div>
-                <h1>ChatSphereAI</h1>
-            </div>
-            <button onclick="viewHistory()" style="background: #343541; border: 1px solid #fff; padding: 10px;">View History</button>
-        </div>
-        <div class="chat-area">
-            <div class="chat-body" id="chat-body"></div>
-            <div class="chat-footer">
-                <select id="model-select" title="Choose an AI model">
-                    <option value="deepseek-v3" title="General-purpose model for everyday tasks">deepseek-v3</option>
-                    <option value="deepseek-r1" title="Optimized for reasoning and problem-solving">deepseek-r1</option>
-                </select>
-                <input type="text" id="message-input" placeholder="Type a message...">
-                <button onclick="sendMessage('chat')">Send</button>
-                <button onclick="sendMessage('search')">Search</button>
-            </div>
-        </div>
-    </div>
-    <div class="popup hidden" id="user-info-popup">
-        <h2>Welcome to ChatSphereAI</h2>
-        <p>Please tell us a bit about yourself:</p>
-        <input type="text" id="who-input" placeholder="Who are you on our website? (e.g., student, developer)">
-        <input type="text" id="search-input" placeholder="What did you search for here?">
-        <button onclick="submitUserInfo()">Continue</button>
     </div>
 
     <script>
-        const loginContainer = document.getElementById('login-container');
-        const chatContainer = document.getElementById('chat-container');
-        const chatBody = document.getElementById('chat-body');
-        const modelSelect = document.getElementById('model-select');
-        const messageInput = document.getElementById('message-input');
-        const popup = document.getElementById('user-info-popup');
-        const whoInput = document.getElementById('who-input');
-        const searchInput = document.getElementById('search-input');
-
-        // Replace with your DeepSeek API keys (updated manually from Python)
-        const apiKeys = [
-            "YOUR_API_KEY_1",
-            "YOUR_API_KEY_2",
-            "YOUR_API_KEY_3"
-        ];
-        const endpoint = "https://api.deepseek.com/v1/chat/completions";
-
-        let userId = null;
-        let history = JSON.parse(localStorage.getItem('chatHistory')) || {};
-
-        // Google Login Callback
-        function handleCredentialResponse(response) {
-            const profile = decodeJWT(response.credential);
-            userId = profile.sub;
-            loginContainer.classList.add('hidden');
-            popup.classList.remove('hidden');
-        }
-
-        // Decode JWT
-        function decodeJWT(token) {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            return JSON.parse(jsonPayload);
-        }
-
-        // Submit user info
-        function submitUserInfo() {
-            const who = whoInput.value.trim();
-            const search = searchInput.value.trim();
-            if (!who || !search) {
-                alert("Please fill in both fields.");
-                return;
-            }
-            if (!history[userId]) history[userId] = [];
-            history[userId].push({
-                time: new Date().toISOString(),
-                who: who,
-                searchIntent: search,
-                type: "user_info"
-            });
-            localStorage.setItem('chatHistory', JSON.stringify(history));
-            popup.classList.add('hidden');
-            chatContainer.classList.remove('hidden');
-            loadHistory();
-        }
-
-        // Send message or search
-        async function sendMessage(type) {
-            const message = messageInput.value.trim();
-            if (!message) return;
-
-            const userMsg = document.createElement('div');
-            userMsg.className = 'message user-message';
-            userMsg.textContent = message;
-            chatBody.appendChild(userMsg);
-
-            const thinkingMsg = document.createElement('div');
-            thinkingMsg.className = 'message bot-message thinking';
-            thinkingMsg.textContent = type === 'search' ? 'Searching...' : 'Thinking...';
-            chatBody.appendChild(thinkingMsg);
-            chatBody.scrollTop = chatBody.scrollHeight;
-
-            const model = modelSelect.value;
-            const payload = {
-                model: model,
-                messages: [{ role: "user", content: type === 'search' ? `Search: ${message}` : message }]
-            };
-
-            let responseText = null;
-            for (const apiKey of apiKeys) {
-                try {
-                    const response = await fetch(endpoint, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${apiKey}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                    if (response.ok) {
-                        const data = await response.json();
-                        responseText = data.choices[0].message.content;
-                        break;
-                    }
-                } catch (e) {
-                    console.log(`Key ${apiKey} failed: ${e}`);
-                }
-            }
-
-            chatBody.removeChild(thinkingMsg);
-            const botMsg = document.createElement('div');
-            botMsg.className = 'message bot-message';
-            botMsg.textContent = responseText || 'Error: No response from AI';
-            chatBody.appendChild(botMsg);
-            chatBody.scrollTop = chatBody.scrollHeight;
-
-            history[userId].push({ time: new Date().toISOString(), message, response: responseText, model });
-            localStorage.setItem('chatHistory', JSON.stringify(history));
-
-            messageInput.value = '';
-        }
-
-        // Load history
-        function loadHistory() {
-            if (history[userId]) {
-                chatBody.innerHTML = '';
-                history[userId].forEach(item => {
-                    if (item.type === "user_info") {
-                        const infoMsg = document.createElement('div');
-                        infoMsg.className = 'message bot-message';
-                        infoMsg.textContent = `User Info: ${item.who}, Searched: ${item.searchIntent}`;
-                        chatBody.appendChild(infoMsg);
-                    } else {
-                        const userMsg = document.createElement('div');
-                        userMsg.className = 'message user-message';
-                        userMsg.textContent = item.message;
-                        chatBody.appendChild(userMsg);
-
-                        const botMsg = document.createElement('div');
-                        botMsg.className = 'message bot-message';
-                        botMsg.textContent = item.response || 'No response';
-                        chatBody.appendChild(botMsg);
-                    }
-                });
-                chatBody.scrollTop = chatBody.scrollHeight;
-            }
-        }
-
-        // View history
-        function viewHistory() {
-            alert('Your history is shown. To export for admin review, open Dev Tools (F12) > Application > Local Storage > chatHistory, copy the JSON, and share it.');
-        }
-
-        // Send on Enter
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage('chat');
-        });
+        // Google OAuth will redirect to chat.html; no additional JS needed here
     </script>
 </body>
 </html>
