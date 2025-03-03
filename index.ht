@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatsphere AI - Chat</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #10a37f;
+            --background-color: #f5f8fa;
+            --text-color: #333;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --error-color: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: linear-gradient(135deg, #f5f8fa, #e9f1ff);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(145deg, #fff, #e3f2fd);
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 10px 25px var(--shadow-color);
+            margin-bottom: 20px;
+            transition: transform 0.6s ease, box-shadow 0.6s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(0, 123, 255, 0.1), rgba(16, 163, 127, 0.1));
+            z-index: 0;
+            opacity: 0.3;
+            transition: opacity 0.6s ease;
+        }
+        header:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 35px var(--shadow-color);
+        }
+        header:hover::before {
+            opacity: 0.5;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-title {
+            font-size: 3em;
+            color: var(--primary-color);
+            font-weight: 800;
+            margin: 0;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+            transition: color 0.6s ease;
+        }
+        header:hover .header-title {
+            color: #0056b3;
+        }
+
+        .header-subtitle {
+            font-size: 1.3em;
+            color: #666;
+            font-weight: 500;
+            margin: 0;
+            opacity: 0.9;
+            transition: opacity 0.6s ease;
+        }
+        header:hover .header-subtitle {
+            opacity: 1;
+        }
+
+        .chat-container-wrapper {
+            flex-grow: 1;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .chat-card {
+            background-color: #fff;
+            border-radius: 24px;
+            box-shadow: 0 12px 30px var(--shadow-color);
+            padding: 30px;
+            transition: box-shadow 0.6s ease, transform 0.6s ease;
+        }
+        .chat-card:hover {
+            box-shadow: 0 18px 45px var(--shadow-color);
+            transform: translateY(-4px);
+        }
+
+        .chat-container {
+            height: 70vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 25px;
+            background: linear-gradient(135deg, #fff, #f9fbff);
+            border-radius: 20px;
+            transition: box-shadow 0.6s ease;
+        }
+
+        .chat-message {
+            padding: 20px 28px;
+            border-radius: 20px;
+            margin: 12px 0;
+            max-width: 80%;
+            word-wrap: break-word;
+            position: relative;
+            animation: slideIn 0.8s ease-out;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+        }
+        .chat-message::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+        .user-message {
+            background-color: var(--primary-color);
+            color: white;
+            align-self: flex-end;
+            margin-right: 30px;
+        }
+        .user-message::after {
+            right: -18px;
+            top: 22px;
+            border-width: 18px 0 18px 18px;
+            border-color: transparent transparent transparent var(--primary-color);
+        }
+        .ai-message {
+            background-color: var(--secondary-color);
+            color: white;
+            align-self: flex-start;
+            margin-left: 30px;
+        }
+        .ai-message::after {
+            left: -18px;
+            top: 22px;
+            border-width: 18px 18px 18px 0;
+            border-color: transparent var(--secondary-color) transparent transparent;
+        }
+        .message-time {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 12px;
+            text-align: right;
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        .typing-indicator {
+            font-style: italic;
+            color: #666;
+            align-self: flex-start;
+            margin-left: 30px;
+            animation: pulse 2s infinite;
+            display: none;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        #chat-input {
+            flex-grow: 1;
+            padding: 12px 20px;
+            border: 2px solid #ccc;
+            border-radius: 24px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.6s ease, box-shadow 0.6s ease;
+            background-color: #fff;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            min-width: 200px;
+        }
+        #chat-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 20px rgba(0, 123, 255, 0.4);
+        }
+        #chat-input::placeholder {
+            color: #888;
+            opacity: 0.8;
+        }
+
+        #send-button {
+            padding: 12px 24px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.6s ease, transform 0.5s ease, box-shadow 0.6s ease;
+            box-shadow: 0 5px 16px rgba(0, 123, 255, 0.4);
+            min-width: 80px;
+        }
+        #send-button:hover {
+            background-color: #0056b3;
+            transform: scale(1.06);
+            box-shadow: 0 7px 22px rgba(0, 123, 255, 0.5);
+        }
+        #send-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .model-display {
+            padding: 10px 18px;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 24px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: default; /* Non-interactive since model is fixed */
+            flex-shrink: 0;
+            max-width: 150px;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            transition: opacity 0.6s ease;
+        }
+        .model-display:hover {
+            opacity: 0.9;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 1em;
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+            font-weight: 500;
+            padding: 12px 20px;
+            background-color: #ffebee;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .fallback-indicator {
+            color: var(--error-color);
+            font-size: 0.9em;
+            margin-top: 5px;
+            text-align: right;
+            opacity: 0.7;
+            display: none;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1em;
+            color: #666;
+            opacity: 0.9;
+            border-top: 2px solid #e9ecef;
+            padding-top: 15px;
+            transition: opacity 0.6s ease;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .footer:hover {
+            opacity: 1;
+        }
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.6s ease;
+        }
+        a:hover {
+            color: #0056b3;
+            text-decoration: underline;
+            text-decoration-color: #0056b3;
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .chat-card, header {
+                border-radius: 16px;
+            }
+            .chat-message {
+                max-width: 85%;
+            }
+            #chat-input, #send-button, .model-display {
+                padding: 10px 16px;
+                font-size: 0.9em;
+            }
+            .input-container, .error-message, .footer, .fallback-indicator {
+                max-width: 100%;
+                margin: 0;
+            }
+            .chat-container {
+                height: 50vh;
+            }
+            header {
+                padding: 25px 15px;
+                border-radius: 0 0 16px 16px;
+            }
+            .header-title {
+                font-size: 2.2em;
+            }
+            .header-subtitle {
+                font-size: 1em;
+            }
+        }
+
+        /* Accessibility */
+        .chat-container[role="log"] {
+            aria-live: polite;
+        }
+        #chat-input[aria-label] {
+            aria-required: true;
+        }
+    </style>
+    <script src="config.js"></script> <!-- Load API key from config.js -->
+    <script>
+        // Enhanced JavaScript for chat functionality with fixed DeepSeek model and API integration (client-side only)
+        document.addEventListener('DOMContentLoaded', () => {
+            const sendButton = document.getElementById('send-button');
+            const chatInput = document.getElementById('chat-input');
+            const chatContainer = document.querySelector('.chat-container');
+            const errorMessage = document.createElement('div');
+            errorMessage.classList.add('error-message');
+            errorMessage.textContent = 'Error: Please check your internet connection or API credentials.';
+            document.querySelector('.chat-app').appendChild(errorMessage);
+            const fallbackIndicator = document.createElement('div');
+            fallbackIndicator.classList.add('fallback-indicator');
+            fallbackIndicator.textContent = 'Switched to backup API due to an error.';
+            document.querySelector('.chat-app').appendChild(fallbackIndicator);
+
+            // Model configuration with multiple API keys for DeepSeek (replace with actual keys in config.js)
+            const model = {
+                apiKeys: [API_KEY, 'YOUR_DEEPSEEK_API_KEY_2', 'YOUR_DEEPSEEK_API_KEY_3'], // Use API_KEY from config.js, add backups
+                apiUrl: 'https://openrouter.ai/api/v1', // Base URL as specified
+                payload: (prompt) => ({
+                    model: 'deepseek/deepseek-r1:free', // Specific DeepSeek model
+                    prompt: prompt,
+                    max_tokens: 150,
+                    temperature: 0.7,
+                }),
+                responsePath: 'choices[0].text', // Adjust based on OpenRouter’s response format
+                name: 'DeepSeek AI',
+                maxRetries: 3, // Maximum retries per key
+                timeout: 10000, // 10 seconds timeout per request
+            };
+
+            let currentApiKeyIndex = 0; // Track current key index
+
+            // Set model display (non-interactive, fixed to DeepSeek)
+            const modelDisplay = document.querySelector('.model-display');
+            modelDisplay.textContent = model.name;
+            modelDisplay.style.cursor = 'default'; // Non-interactive
+
+            // Handle send button click and Enter key
+            sendButton.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+
+            async function sendMessage() {
+                const message = chatInput.value.trim();
+                if (!message) return;
+
+                // Disable send button and show loading state
+                sendButton.disabled = true;
+                sendButton.textContent = 'Sending...';
+                errorMessage.style.display = 'none'; // Hide any previous errors
+                fallbackIndicator.style.display = 'none'; // Hide fallback indicator
+
+                // Add user message with timestamp
+                addMessage(message, 'user', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+
+                // Show typing indicator
+                showTypingIndicator();
+
+                try {
+                    const response = await fetchWithFallback(model, message);
+                    let aiResponse = evaluatePath(response, model.responsePath) || `I’m sorry, ${model.name} couldn’t process your request. Please try again.`;
+                    addMessage(aiResponse, 'ai', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                } catch (error) {
+                    console.error('API Error:', error);
+                    errorMessage.style.display = 'block';
+                    addMessage('Sorry, there was an error connecting to the AI model. Please try again later.', 'ai', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                } finally {
+                    hideTypingIndicator();
+                    sendButton.disabled = false;
+                    sendButton.textContent = 'Send';
+                }
+
+                chatInput.value = ''; // Clear input
+                chatInput.focus(); // Keep focus on input
+            }
+
+            async function fetchWithFallback(modelConfig, message, retryCount = 0, keyIndex = currentApiKeyIndex) {
+                if (retryCount >= modelConfig.maxRetries) {
+                    throw new Error('All API keys failed. Please try again later.');
+                }
+
+                if (keyIndex >= modelConfig.apiKeys.length) {
+                    throw new Error('No more API keys available for this model.');
+                }
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), modelConfig.timeout);
+
+                try {
+                    const response = await fetch(modelConfig.apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${modelConfig.apiKeys[keyIndex]}`,
+                        },
+                        body: JSON.stringify(modelConfig.payload(message)),
+                        signal: controller.signal,
+                    });
+
+                    clearTimeout(timeoutId);
+                    if (!response.ok) {
+                        if (response.status === 401 || response.status === 403) { // Authentication errors
+                            currentApiKeyIndex++; // Try next key
+                            return await fetchWithFallback(modelConfig, message, 0, currentApiKeyIndex);
+                        } else if (response.status === 429) { // Rate limit exceeded
+                            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retrying
+                            return await fetchWithFallback(modelConfig, message, retryCount + 1, keyIndex);
+                        }
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    clearTimeout(timeoutId);
+                    if (error.name === 'AbortError') {
+                        console.warn('Request timed out, retrying...');
+                        return await fetchWithFallback(modelConfig, message, retryCount + 1, keyIndex);
+                    }
+                    currentApiKeyIndex++; // Try next key
+                    return await fetchWithFallback(modelConfig, message, 0, currentApiKeyIndex);
+                }
+            }
+
+            // Helper function to evaluate nested object paths (e.g., 'choices[0].text')
+            function evaluatePath(obj, path) {
+                try {
+                    return path.split(/\[|\]|\./).filter(Boolean).reduce((acc, part) => {
+                        if (acc === null || acc === undefined) return undefined;
+                        return acc[part];
+                    }, obj);
+                } catch (error) {
+                    return undefined;
+                }
+            }
+
+            function addMessage(text, type, time) {
+                try {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('chat-message', `${type}-message`);
+                    messageDiv.textContent = text;
+                    const timeSpan = document.createElement('span');
+                    timeSpan.classList.add('message-time');
+                    timeSpan.textContent = time;
+                    messageDiv.appendChild(timeSpan);
+                    chatContainer.appendChild(messageDiv);
+                    chatContainer.scrollTop = chatContainer.scrollHeight; // Auto-scroll to bottom
+                } catch (error) {
+                    console.error('Message Addition Error:', error);
+                    addMessage('Error displaying message. Please try again.', 'ai', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                }
+            }
+
+            function showTypingIndicator() {
+                let typingIndicator = document.querySelector('.typing-indicator');
+                if (!typingIndicator) {
+                    typingIndicator = document.createElement('div');
+                    typingIndicator.classList.add('typing-indicator');
+                    typingIndicator.textContent = 'Chatsphere AI is typing...';
+                    chatContainer.appendChild(typingIndicator);
+                }
+                typingIndicator.style.display = 'block';
+            }
+
+            function hideTypingIndicator() {
+                const typingIndicator = document.querySelector('.typing-indicator');
+                if (typingIndicator) typingIndicator.style.display = 'none';
+            }
+
+            // Initial welcome message
+            addMessage('Hello! I’m Chatsphere AI. Start chatting with DeepSeek AI!', 'ai', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1 class="header-title">Chatsphere AI</h1>
+            <p class="header-subtitle">Your Intelligent Conversational Companion</p>
+        </div>
+    </header>
+
+    <div class="chat-container-wrapper">
+        <div class="chat-app">
+            <div class="chat-card">
+                <div class="chat-container" role="log" aria-live="polite">
+                    <!-- Initial message added via JavaScript -->
+                </div>
+            </div>
+
+            <div class="chat-card">
+                <div class="input-container">
+                    <input type="text" id="chat-input" placeholder="Type your message here..." aria-label="Chat input" aria-required="true">
+                    <button id="send-button" aria-label="Send message">Send</button>
+                    <div class="model-display" aria-label="Current AI model">DeepSeek AI</div>
+                </div>
+            </div>
+
+            <div class="error-message">
+                <!-- Error message added via JavaScript -->
+            </div>
+
+            <div class="fallback-indicator">
+                <!-- Fallback indicator added via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>© 2025 Chatsphere AI. All rights reserved. | <a href="https://chatsphereai.github.io/privacy-policy">Privacy Policy</a> | <a href="https://chatsphereai.github.io/terms-of-service">Terms of Service</a> | Contact us at: <a href="mailto:chatspherea.addon@gmail.com">chatspherea.addon@gmail.com</a> | Based in Bengaluru, Karnataka, India</p>
+    </div>
+</body>
+</html>
