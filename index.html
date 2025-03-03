@@ -386,20 +386,21 @@
             document.querySelector('.chat-app').appendChild(fallbackIndicator);
 
             // Model configuration with multiple API keys for DeepSeek (replace with actual keys in config.js)
-            const model = {
-                apiKeys: [API_KEY, 'YOUR_DEEPSEEK_API_KEY_2', 'YOUR_DEEPSEEK_API_KEY_3'], // Use API_KEY from config.js, add backups
-                apiUrl: 'https://openrouter.ai/api/v1', // Base URL as specified
-                payload: (prompt) => ({
-                    model: 'deepseek/deepseek-r1:free', // Specific DeepSeek model
-                    prompt: prompt,
-                    max_tokens: 150,
-                    temperature: 0.7,
-                }),
-                responsePath: 'choices[0].text', // Adjust based on OpenRouter’s response format
-                name: 'DeepSeek AI',
-                maxRetries: 3, // Maximum retries per key
-                timeout: 10000, // 10 seconds timeout per request
-            };
+            // In chat.html, within the <script> tag
+const model = {
+    apiKeys: [API_KEY, ...BACKUP_API_KEYS], // Use API_KEY and BACKUP_API_KEYS from config.js
+    apiUrl: 'https://openrouter.ai/api/v1', // Base URL as specified
+    payload: (prompt) => ({
+        model: 'deepseek/deepseek-r1:free', // Specific DeepSeek model
+        prompt: prompt,
+        max_tokens: 150,
+        temperature: 0.7,
+    }),
+    responsePath: 'choices[0].text', // Adjust based on OpenRouter’s response format
+    name: 'DeepSeek AI',
+    maxRetries: 3, // Maximum retries per key
+    timeout: 10000, // 10 seconds timeout per request
+};
 
             let currentApiKeyIndex = 0; // Track current key index
 
