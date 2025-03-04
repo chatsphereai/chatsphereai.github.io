@@ -7,7 +7,7 @@
     <style>
         :root {
             --primary-color: #007bff;
-            --secondary-color: #10a37f;
+            --secondary-color: #10a37f; /* Inspired by Grok/DeepSeek green */
             --background-color: #f5f8fa;
             --text-color: #333;
             --shadow-color: rgba(0, 0, 0, 0.05);
@@ -128,48 +128,32 @@
             background: linear-gradient(135deg, #fff, #f9fbff);
             border-radius: 20px;
             transition: box-shadow 0.6s ease;
+            max-width: 100%;
         }
 
         .chat-message {
             padding: 20px 28px;
-            border-radius: 20px;
+            border-radius: 12px; /* Reduced for flat, rectangular look like Grok/ChatGPT */
             margin: 12px 0;
             max-width: 80%;
             word-wrap: break-word;
-            position: relative;
-            animation: slideIn 0.8s ease-out;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-        }
-        .chat-message::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 0;
-            border-style: solid;
+            background-color: #fff; /* Explicit background for clarity */
+            border: 1px solid #e9ecef; /* Subtle border like Grok/ChatGPT */
         }
         .user-message {
             background-color: var(--primary-color);
             color: white;
             align-self: flex-end;
             margin-right: 30px;
-        }
-        .user-message::after {
-            right: -18px;
-            top: 22px;
-            border-width: 18px 0 18px 18px;
-            border-color: transparent transparent transparent var(--primary-color);
+            border: none; /* Remove border for user messages to match Grok/ChatGPT */
         }
         .ai-message {
             background-color: var(--secondary-color);
             color: white;
             align-self: flex-start;
             margin-left: 30px;
-        }
-        .ai-message::after {
-            left: -18px;
-            top: 22px;
-            border-width: 18px 18px 18px 0;
-            border-color: transparent var(--secondary-color) transparent transparent;
+            border: none; /* Remove border for AI messages to match Grok/ChatGPT */
         }
         .message-time {
             font-size: 0.8em;
@@ -371,7 +355,7 @@
     </style>
     <script src="config.js"></script> <!-- Load API key from config.js -->
     <script>
-        // Enhanced JavaScript for chat functionality with fixed DeepSeek model and API integration (client-side only)
+        // Enhanced JavaScript for chat functionality with DeepSeek model via OpenRouter and fallback system (client-side only)
         document.addEventListener('DOMContentLoaded', () => {
             const sendButton = document.getElementById('send-button');
             const chatInput = document.getElementById('chat-input');
@@ -385,22 +369,21 @@
             fallbackIndicator.textContent = 'Switched to backup API due to an error.';
             document.querySelector('.chat-app').appendChild(fallbackIndicator);
 
-            // Model configuration with multiple API keys for DeepSeek (replace with actual keys in config.js)
-            // In chat.html, within the <script> tag
-const model = {
-    apiKeys: [API_KEY, ...BACKUP_API_KEYS], // Use API_KEY and BACKUP_API_KEYS from config.js
-    apiUrl: 'https://openrouter.ai/api/v1/chat/completions', // Base URL as specified
-    payload: (prompt) => ({
-        model: 'deepseek/deepseek-r1:free', // Specific DeepSeek model
-        prompt: prompt,
-        max_tokens: 150,
-        temperature: 0.7,
-    }),
-    responsePath: 'choices[0].text', // Adjust based on OpenRouter’s response format
-    name: 'DeepSeek AI',
-    maxRetries: 3, // Maximum retries per key
-    timeout: 10000, // 10 seconds timeout per request
-};
+            // Model configuration with multiple API keys for DeepSeek via OpenRouter (replace with actual keys in config.js)
+            const model = {
+                apiKeys: [API_KEY, 'YOUR_DEEPSEEK_API_KEY_2', 'YOUR_DEEPSEEK_API_KEY_3'], // Use API_KEY from config.js, add backups
+                apiUrl: 'https://openrouter.ai/api/v1/chat/completions', // Correct OpenRouter endpoint for chat completions
+                payload: (prompt) => ({
+                    model: 'deepseek/deepseek-r1:free', // Specific DeepSeek model
+                    messages: [{ role: 'user', content: prompt }], // OpenRouter expects messages array for chat
+                    max_tokens: 150,
+                    temperature: 0.7,
+                }),
+                responsePath: 'choices[0].message.content', // Adjust based on OpenRouter’s response format for chat completions
+                name: 'DeepSeek AI',
+                maxRetries: 3, // Maximum retries per key
+                timeout: 10000, // 10 seconds timeout per request
+            };
 
             let currentApiKeyIndex = 0; // Track current key index
 
@@ -467,6 +450,8 @@ const model = {
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${modelConfig.apiKeys[keyIndex]}`,
+                            'HTTP-Referer': 'https://chatsphereai.github.io', // Optional, per OpenRouter requirements
+                            'X-Title': 'Chatsphere AI', // Optional, per OpenRouter requirements
                         },
                         body: JSON.stringify(modelConfig.payload(message)),
                         signal: controller.signal,
@@ -495,7 +480,7 @@ const model = {
                 }
             }
 
-            // Helper function to evaluate nested object paths (e.g., 'choices[0].text')
+            // Helper function to evaluate nested object paths (e.g., 'choices[0].message.content')
             function evaluatePath(obj, path) {
                 try {
                     return path.split(/\[|\]|\./).filter(Boolean).reduce((acc, part) => {
@@ -580,7 +565,7 @@ const model = {
     </div>
 
     <div class="footer">
-        <p>© 2025 Chatsphere AI. All rights reserved. | <a href="https://chatsphereai.github.io/privacy-policy">Privacy Policy</a> | <a href="https://chatsphereai.github.io/terms-of-service">Terms of Service</a> | Contact us at: <a href="mailto:chatspherea.addon@gmail.com">chatspherea.addon@gmail.com</a> | Based in Bengaluru, Karnataka, India</p>
+        <p>© 2025 Chatsphere AI. All rights reserved. | <a href="https://chatsphereai.github.io/privacy-policy">Privacy Policy</a> | <a href="https://chatsphereai.github.io/terms-of-service">Terms of Service</a> | Contact us at: <a href="mailto:support@chatsphere-ai.com">support@chatsphere-ai.com</a> | Based in Bengaluru, Karnataka, India</p>
     </div>
 </body>
 </html>
