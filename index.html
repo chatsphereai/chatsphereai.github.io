@@ -7,7 +7,7 @@
     <style>
         :root {
             --primary-color: #007bff;
-            --secondary-color: #10a37f; /* Inspired by Grok/DeepSeek green */
+            --secondary-color: #10a37f;
             --background-color: #f5f8fa;
             --text-color: #333;
             --shadow-color: rgba(0, 0, 0, 0.05);
@@ -132,36 +132,37 @@
         }
 
         .chat-message {
-            padding: 20px 28px;
-            border-radius: 12px; /* Reduced for flat, rectangular look like Grok/ChatGPT */
+            padding: 16px 24px;
+            border-radius: 12px;
             margin: 12px 0;
             max-width: 80%;
             word-wrap: break-word;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-            background-color: #fff; /* Explicit background for clarity */
-            border: 1px solid #e9ecef; /* Subtle border like Grok/ChatGPT */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            background-color: #fff;
+            border: 1px solid #e9ecef;
         }
         .user-message {
             background-color: var(--primary-color);
             color: white;
             align-self: flex-end;
             margin-right: 30px;
-            border: none; /* Remove border for user messages to match Grok/ChatGPT */
+            border: none;
         }
         .ai-message {
             background-color: var(--secondary-color);
             color: white;
             align-self: flex-start;
             margin-left: 30px;
-            border: none; /* Remove border for AI messages to match Grok/ChatGPT */
+            border: none;
         }
         .message-time {
             font-size: 0.8em;
             color: #666;
-            margin-top: 12px;
+            margin-top: 8px;
             text-align: right;
             opacity: 0.7;
             font-style: italic;
+            display: block;
         }
 
         .typing-indicator {
@@ -181,6 +182,10 @@
             margin-top: 20px;
             max-width: 800px;
             margin: 0 auto;
+            padding: 15px;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 4px 12px var(--shadow-color);
         }
         #chat-input {
             flex-grow: 1;
@@ -227,31 +232,10 @@
             box-shadow: none;
         }
 
-        .model-display {
-            padding: 10px 18px;
-            background-color: var(--accent-color);
-            color: white;
-            border-radius: 24px;
-            font-size: 0.9em;
-            font-weight: 600;
-            cursor: default; /* Non-interactive since model is fixed */
-            flex-shrink: 0;
-            max-width: 150px;
-            text-align: center;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            box-shadow: 0 4px 12px var(--shadow-color);
-            transition: opacity 0.6s ease;
-        }
-        .model-display:hover {
-            opacity: 0.9;
-        }
-
-        .error-message {
+        .error-message, .fallback-indicator {
             color: var(--error-color);
             font-size: 1em;
-            margin-top: 15px;
+            margin-top: 10px;
             text-align: center;
             display: none;
             font-weight: 500;
@@ -259,17 +243,6 @@
             background-color: #ffebee;
             border-radius: 16px;
             box-shadow: 0 4px 12px rgba(220, 53, 69, 0.1);
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .fallback-indicator {
-            color: var(--error-color);
-            font-size: 0.9em;
-            margin-top: 5px;
-            text-align: right;
-            opacity: 0.7;
-            display: none;
             max-width: 800px;
             margin: 0 auto;
         }
@@ -322,11 +295,11 @@
             .chat-message {
                 max-width: 85%;
             }
-            #chat-input, #send-button, .model-display {
+            #chat-input, #send-button {
                 padding: 10px 16px;
                 font-size: 0.9em;
             }
-            .input-container, .error-message, .footer, .fallback-indicator {
+            .input-container, .error-message, .footer {
                 max-width: 100%;
                 margin: 0;
             }
@@ -360,18 +333,12 @@
             const sendButton = document.getElementById('send-button');
             const chatInput = document.getElementById('chat-input');
             const chatContainer = document.querySelector('.chat-container');
-            const errorMessage = document.createElement('div');
-            errorMessage.classList.add('error-message');
-            errorMessage.textContent = 'Error: Please check your internet connection or API credentials.';
-            document.querySelector('.chat-app').appendChild(errorMessage);
-            const fallbackIndicator = document.createElement('div');
-            fallbackIndicator.classList.add('fallback-indicator');
-            fallbackIndicator.textContent = 'Switched to backup API due to an error.';
-            document.querySelector('.chat-app').appendChild(fallbackIndicator);
+            const errorMessage = document.querySelector('.error-message');
+            const fallbackIndicator = document.querySelector('.fallback-indicator');
 
-            // Model configuration with multiple API keys for DeepSeek via OpenRouter (replace with actual keys in config.js)
+            // Model configuration with your OpenRouter API keys for DeepSeek via OpenRouter
             const model = {
-                apiKeys: [API_KEY, 'YOUR_DEEPSEEK_API_KEY_2', 'YOUR_DEEPSEEK_API_KEY_3'], // Use API_KEY from config.js, add backups
+                apiKeys: [API_KEY, ...BACKUP_API_KEYS], // Use API keys from config.js
                 apiUrl: 'https://openrouter.ai/api/v1/chat/completions', // Correct OpenRouter endpoint for chat completions
                 payload: (prompt) => ({
                     model: 'deepseek/deepseek-r1:free', // Specific DeepSeek model
@@ -386,11 +353,6 @@
             };
 
             let currentApiKeyIndex = 0; // Track current key index
-
-            // Set model display (non-interactive, fixed to DeepSeek)
-            const modelDisplay = document.querySelector('.model-display');
-            modelDisplay.textContent = model.name;
-            modelDisplay.style.cursor = 'default'; // Non-interactive
 
             // Handle send button click and Enter key
             sendButton.addEventListener('click', sendMessage);
@@ -409,7 +371,7 @@
                 fallbackIndicator.style.display = 'none'; // Hide fallback indicator
 
                 // Add user message with timestamp
-                addMessage(message, 'user', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                addMessage(message, 'user', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
 
                 // Show typing indicator
                 showTypingIndicator();
@@ -417,11 +379,11 @@
                 try {
                     const response = await fetchWithFallback(model, message);
                     let aiResponse = evaluatePath(response, model.responsePath) || `I’m sorry, ${model.name} couldn’t process your request. Please try again.`;
-                    addMessage(aiResponse, 'ai', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                    addMessage(aiResponse, 'ai', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
                 } catch (error) {
                     console.error('API Error:', error);
                     errorMessage.style.display = 'block';
-                    addMessage('Sorry, there was an error connecting to the AI model. Please try again later.', 'ai', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                    addMessage('Sorry, there was an error connecting to the AI model. Please try again later.', 'ai', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
                 } finally {
                     hideTypingIndicator();
                     sendButton.disabled = false;
@@ -505,7 +467,7 @@
                     chatContainer.scrollTop = chatContainer.scrollHeight; // Auto-scroll to bottom
                 } catch (error) {
                     console.error('Message Addition Error:', error);
-                    addMessage('Error displaying message. Please try again.', 'ai', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                    addMessage('Error displaying message. Please try again.', 'ai', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
                 }
             }
 
@@ -526,7 +488,7 @@
             }
 
             // Initial welcome message
-            addMessage('Hello! I’m Chatsphere AI. Start chatting with DeepSeek AI!', 'ai', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+            addMessage('Hello! I’m Chatsphere AI. Start chatting with DeepSeek AI!', 'ai', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
         });
     </script>
 </head>
@@ -550,7 +512,6 @@
                 <div class="input-container">
                     <input type="text" id="chat-input" placeholder="Type your message here..." aria-label="Chat input" aria-required="true">
                     <button id="send-button" aria-label="Send message">Send</button>
-                    <div class="model-display" aria-label="Current AI model">DeepSeek AI</div>
                 </div>
             </div>
 
