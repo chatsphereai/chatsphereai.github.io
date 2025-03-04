@@ -389,7 +389,7 @@
             // In chat.html, within the <script> tag
 const model = {
     apiKeys: [API_KEY, ...BACKUP_API_KEYS], // Use API_KEY and BACKUP_API_KEYS from config.js
-    apiUrl: 'https://openrouter.ai/api/v1', // Base URL as specified
+    apiUrl: 'https://openrouter.ai/api/v1/chat/completions', // Base URL as specified
     payload: (prompt) => ({
         model: 'deepseek/deepseek-r1:free', // Specific DeepSeek model
         prompt: prompt,
